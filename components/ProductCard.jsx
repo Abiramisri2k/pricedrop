@@ -3,37 +3,50 @@ import { deleteProduct } from "@/app/auth/callback/action";
 import React, { useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { ChevronDown, ChevronUp, ExternalLink, Trash, Trash2, TrendingDown } from "lucide-react";
+import { ChevronDown, ChevronUp, ExternalLink, Package, Trash, Trash2, TrendingDown } from "lucide-react";
 import { Button } from "./ui/button";
 import Link from "next/link";
 import PriceChart from "./PriceChart";
+import { toast } from "sonner";
 
 const ProductCard = ({ product }) => {
   const [showChart, setShowChart] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
   const handleDelete = async () => {
     if (!confirm("Remove this product from tracking?")) return;
     setDeleting(true);
     const result = await deleteProduct(product.id);
-    if (result.error) {
+    if (result?.error) {
       toast.error(result.error);
     } else {
-      toast.success(result.message || "Product deleted successfully!");
-      setUrl("");
+      toast.success("Product deleted successfully!");
     }
 
     setDeleting(false);
   };
+
+  const isInvalidImage =
+    !product.image_url ||
+    product.image_url.includes("transparent-background") ||
+    imgError;
+
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader className={"pb-3"}>
         <div className="flex gap-4">
-          {product.image_url && (
+          {!isInvalidImage ? (
             <img
               src={product.image_url}
               alt={product.name}
               className="w-20 h-20 object-cover rounded-md border"
+              onError={() => setImgError(true)}
             />
+          ) : (
+            <div className="w-20 h-20 bg-orange-50 rounded-md border border-orange-100 flex items-center justify-center text-orange-400 shrink-0">
+              <Package className="w-8 h-8" />
+            </div>
           )}
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-gray-900 line-clamp-2 mb-2">
